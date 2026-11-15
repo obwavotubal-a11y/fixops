@@ -11,7 +11,11 @@ SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-your-default-secret-k
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 
-ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '*').split(',')
+# Allow Railway, localhost, and any railway.app subdomain
+ALLOWED_HOSTS = ['fixops-production-139aa79d.up.railway.app', '.railway.app', 'localhost', '127.0.0.1']
+
+# Trust the Railway frontend for CSRF (important for login/forms later)
+CSRF_TRUSTED_ORIGINS = ['https://fixops-production-139aa79d.up.railway.app']
 
 # Application definition
 INSTALLED_APPS = [
@@ -64,13 +68,17 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'backend.wsgi.application'
 
-# Database Configuration (Works for Local and Railway)
+# Database Configuration (Local SQLite for dev, Railway Postgres for production)
 DATABASES = {
-    'default': dj_database_url.config(
-        default='postgres://postgres:I love God@localhost:5432/fixops_db',
-        conn_max_age=600
-    )
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }
 }
+
+# If Railway provides a DATABASE_URL, use it instead
+if os.environ.get('DATABASE_URL'):
+    DATABASES['default'] = dj_database_url.config(conn_max_age=600)
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
@@ -108,7 +116,7 @@ REST_FRAMEWORK = {
 ASGI_APPLICATION = 'backend.asgi.application'
 
 # For local development, we use the in-memory channel layer.
-# (For production, you would switch this to Redis)
+# (For production with multiple workers, you would switch this to Redis)
 CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels.layers.InMemoryChannelLayer"
