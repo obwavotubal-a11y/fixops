@@ -1,8 +1,8 @@
 [phases.setup]
-nixPkgs = ["python312", "gcc", "libffi"]
+nixPkgs = ["python312", "gcc", "libffi", "pip"]
 
 [phases.install]
-cmds = ["pip install --upgrade pip", "pip install -r requirements.txt"]
+cmds = ["python3.12 -m pip install --upgrade pip", "python3.12 -m pip install -r requirements.txt"]
 
 [start]
 cmd = "python manage.py migrate && daphne -b 0.0.0.0 -p $PORT backend.asgi:application"
